@@ -1,4 +1,5 @@
-microshell
+/microshell/microshell
+*.o
 out*.res
 leaks.res
 out*
