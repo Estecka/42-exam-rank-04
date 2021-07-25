@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:42:02 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/20 19:26:48 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:24:46 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ void	lseltdelete(lselt* this);
 ** @return A pointer to the newly created list element.
 */
 lselt*	lseltpush(lselt** this, const char* value);
+
+void	lseltlog(const lselt* this);
 
 
 #endif

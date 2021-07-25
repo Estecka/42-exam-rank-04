@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:19:00 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/20 19:52:53 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:25:43 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,5 +102,6 @@ extern int	main(int argc, char** argv){
 
 	commands = ParseCommands(argv);
 
+	lseltlog(commands);
 	lseltdelete(commands);
 }
