@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:42:25 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/25 19:24:28 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:28:19 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ extern void	lseltdelete(lselt* this){
 	}
 }
 
-extern lselt*	lseltpush(lselt** this, const char* value){
+extern lselt**	lseltpush(lselt** this, const char* value){
 	while(*this != NULL)
 		this = &((**this).next);
 
@@ -33,7 +33,7 @@ extern lselt*	lseltpush(lselt** this, const char* value){
 	(**this).child = NULL;
 	(**this).next  = NULL;
 
-	return *this;
+	return this;
 }
 
 

@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:19:00 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/25 19:25:43 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:28:27 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ static lselt*	ParsePipes(char*** argcursor) {
 			return ++*argcursor, processes;
 
 		printf("\tPipe %s\n", **argcursor);
-		*ilt = lseltpush(ilt, NULL);
+		ilt = lseltpush(ilt, NULL);
 		(**ilt).child = ParseArgs(argcursor);
 	}
 	return processes;
@@ -88,7 +88,7 @@ static lselt*	ParseCommands(char** argv) {
 
 	while (argv != EOARG){
 		printf("Command %s\n", *argv);
-		*ilt = lseltpush(ilt, NULL);
+		ilt = lseltpush(ilt, NULL);
 		(**ilt).child = ParsePipes(&argv);
 	}
 

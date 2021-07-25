@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:42:02 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/25 19:24:46 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:28:05 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void	lseltdelete(lselt* this);
 ** 	If list is empty, the variable should point to NULL. It will then be set to the root of the new list.
 ** @return A pointer to the newly created list element.
 */
-lselt*	lseltpush(lselt** this, const char* value);
+lselt**	lseltpush(lselt** this, const char* value);
 
 void	lseltlog(const lselt* this);
 
