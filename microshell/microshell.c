@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:19:00 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/25 19:28:27 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/25 19:35:56 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,14 +43,14 @@ static char**	EOARG;
 /*
 ** Generates list of argument for a process.
 ** @param const char*** argcursor	The first argument of the current process.
-** 	On return, this will point to the first argument in the next process.
+** 	On return, this will point to the terminating token.
 */
 static lselt*	ParseArgs(char*** argcursor){
 	lselt*	args = NULL;
 
 	while (*argcursor != EOARG) {
 		if (GetSyntaxType(**argcursor) != SYNTARG)
-			return ++*argcursor, args;
+			return args;
 
 		printf("\t\tArg %s\n", **argcursor);
 		lseltpush(&args, **argcursor);
@@ -69,12 +69,14 @@ static lselt*	ParsePipes(char*** argcursor) {
 	lselt**	ilt = &processes;
 
 	while(*argcursor != EOARG) {
-		if (GetSyntaxType(**argcursor) == SYNTSEMICOLUMN)
-			return ++*argcursor, processes;
-
 		printf("\tPipe %s\n", **argcursor);
 		ilt = lseltpush(ilt, NULL);
 		(**ilt).child = ParseArgs(argcursor);
+		
+		ESyntax term = GetSyntaxType(**argcursor);
+		++*argcursor;
+		if (term == SYNTSEMICOLUMN)
+			break;
 	}
 	return processes;
 }
