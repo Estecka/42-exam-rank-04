@@ -1,8 +1,10 @@
 HDRS = \
 	lselt.h \
+	parser.h \
 
 SRCS = \
 	lselt.c \
+	parser.c \
 	microshell.c \
 
 OBJS = ${SRCS:.c=.o}

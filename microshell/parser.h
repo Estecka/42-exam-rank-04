@@ -1,28 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   microshell.c                                       :+:      :+:    :+:   */
+/*   parser.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/07/20 18:19:00 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/26 18:44:30 by abaur            ###   ########.fr       */
+/*   Created: 2021/07/26 18:37:11 by abaur             #+#    #+#             */
+/*   Updated: 2021/07/26 18:42:37 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "lselt.h"
-#include "parser.h"
 
-#include "unistd.h"
-#include "stdlib.h"
-#include "stdio.h"
+char**	EOARG;
 
-extern int	main(int argc, char** argv){
-	lselt*	commands = NULL;
-	EOARG = argv + argc;
+lselt*	ParseCommands(char** argv);
 
-	commands = ParseCommands(argv+1);
-
-	lseltlog(commands);
-	lseltdelete(commands);
-}
+#endif
