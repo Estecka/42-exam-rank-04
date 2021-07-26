@@ -1,14 +1,14 @@
 HDRS = \
 
 SRCS = \
-	microshell_example.c
+	microshell.c
 
 OBJS = ${SRCS:.c=.o}
 
 NAME = microshell
 
 CC = clang
-CFLAGS = -g -DTEST_SH -Wall -Wextra -Werror
+CFLAGS = -g -DTEST_SH -Wall -Wextra #-Werror
 
 
 all: ${NAME}
