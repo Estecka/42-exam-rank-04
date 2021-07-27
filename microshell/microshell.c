@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/26 18:55:20 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/26 20:07:50 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/27 18:09:19 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,22 @@
 #include <wait.h>
 
 static char**	g_environ;
+static char**	EOARG;
 
 static size_t	strlen(const char* s){
 	size_t	len = 0;
 	while (*s)
 		s++, len++;
 	return len;
+}
+
+static short	strcmp(const char* s1, const char* s2){
+	while (*s1 || *s2){
+		if (*s1 != *s2)
+			return 0;
+		s1++, s2++;
+	}
+	return 1;
 }
 
 static void	errlog(char* arg1, char* arg2){
@@ -36,10 +46,24 @@ static noreturn void	throw(int status){
 	exit(status);
 }
 
+/*
+** Points to the terminating argument of the current command.
+** This may be either ";", or EOARG.
+*/
+static char**	GetCmdTerm(char** current){
+	while (1){
+		if (current == EOARG || strcmp(*current, ";"))
+			return current;
+		else
+			current++;
+	}
+}
+
 static int	exec_process(char*const* argbegin, char*const* argend){
-	char*	argv[argend - argbegin];
+	char*	argv[1 + argend - argbegin];
 	for(char*const*src=argbegin,**dst=argv; src!=argend; src++,dst++)
 		*dst = *src;
+	argv[argend - argbegin] = NULL;
 
 	int pid = fork();
 	if (!pid){
@@ -54,6 +78,22 @@ static int	exec_process(char*const* argbegin, char*const* argend){
 }
 
 extern int	main(int argc, char** argv, char** environ){
+	if (argc < 2)
+		return EXIT_SUCCESS;
+
+	EOARG = argv + argc;
 	g_environ = environ;
-	exec_process(argv+1, argv+argc);
+
+	char** argbegin = argv+1;
+	char** argend = GetCmdTerm(argbegin);
+	while (1) {
+		if (argbegin != argend)
+			exec_process(argbegin, argend);
+		if (argend == EOARG || ++argend == EOARG)
+			break;
+		argbegin = argend;
+		argend   = GetCmdTerm(argbegin);
+	}
+
+	return EXIT_SUCCESS;
 }

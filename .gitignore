@@ -1,5 +1,6 @@
 /microshell/microshell
 *.o
+*.log
 out*.res
 leaks.res
 out*
