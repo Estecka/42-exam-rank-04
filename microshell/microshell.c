@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/26 18:55:20 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/28 17:49:39 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/28 19:27:08 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,13 +46,22 @@ static noreturn void	throw(int status, const char* arg1, const char* arg2){
 ** Points to the terminating argument of the current command.
 ** This may be either ";", or EOARG.
 */
-static char**	GetCmdTerm(char** current){
+static char**	GetCmdTerm(char*const* current){
 	while (current != EOARG && !strcmp(*current, ";"))
-			current++;
-	return current;
+		current++;
+	return (char**)current;
+}
+/*
+** Points to the terminating argument of the current process.
+** This may be either ";", "|", or EOARG.
+*/
+static char**	GetPipeTerm(char*const* current){
+	while (current != EOARG && !strcmp(*current, ";") && !strcmp(*current, "|"))
+		current++;
+	return (char**)current;
 }
 
-static int	exec_process(char*const* argbegin, char*const* argend){
+static pid_t	create_process(char*const* argbegin, char*const* argend){
 	char*	argv[1 + argend - argbegin];
 	for(char*const*src=argbegin,**dst=argv; src!=argend; src++,dst++)
 		*dst = *src;
@@ -64,8 +73,25 @@ static int	exec_process(char*const* argbegin, char*const* argend){
 		throw(EXIT_FAILURE, "cannot execute ", argv[0]);
 	}
 
+	return pid;
+}
+
+static int	exec_pipechain(char*const* chainbegin, char*const* chainend){
+	pid_t	lastpid;
+
+	char*const*	procbegin = chainbegin;
+	char*const*	procend   = GetPipeTerm(chainbegin);
+	while (1) {
+		lastpid = create_process(procbegin, procend);
+
+		if (procend == chainend)
+			break;
+		procbegin = ++procend;
+		procend   = GetPipeTerm(procbegin);
+	}
+
 	int	status;
-	waitpid(pid, &status, 0);
+	waitpid(lastpid, &status, 0);
 	return WEXITSTATUS(status);
 }
 
@@ -80,7 +106,7 @@ extern int	main(int argc, char** argv, char** environ){
 	char** argend = GetCmdTerm(argbegin);
 	while (1) {
 		if (argbegin != argend)
-			exec_process(argbegin, argend);
+			exec_pipechain(argbegin, argend);
 		if (argend == EOARG || ++argend == EOARG)
 			break;
 		argbegin = argend;
