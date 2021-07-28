@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/26 18:55:20 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/27 18:09:19 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/28 17:49:39 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,15 +34,11 @@ static short	strcmp(const char* s1, const char* s2){
 	return 1;
 }
 
-static void	errlog(char* arg1, char* arg2){
+static noreturn void	throw(int status, const char* arg1, const char* arg2){
 	write(STDERR_FILENO, "error: ", 7);
 	write(STDERR_FILENO, arg1, strlen(arg1));
 	write(STDERR_FILENO, arg2, strlen(arg2));
 	write(STDERR_FILENO, "\n", 1);
-}
-
-static noreturn void	throw(int status){
-	errlog("fatal", "");
 	exit(status);
 }
 
@@ -51,12 +47,9 @@ static noreturn void	throw(int status){
 ** This may be either ";", or EOARG.
 */
 static char**	GetCmdTerm(char** current){
-	while (1){
-		if (current == EOARG || strcmp(*current, ";"))
-			return current;
-		else
+	while (current != EOARG && !strcmp(*current, ";"))
 			current++;
-	}
+	return current;
 }
 
 static int	exec_process(char*const* argbegin, char*const* argend){
@@ -68,12 +61,11 @@ static int	exec_process(char*const* argbegin, char*const* argend){
 	int pid = fork();
 	if (!pid){
 		execve(argv[0], argv, g_environ);
-		errlog("cannot execute ", argv[0]);
-		exit(EXIT_FAILURE);
+		throw(EXIT_FAILURE, "cannot execute ", argv[0]);
 	}
 
 	int	status;
-	wait(&status);
+	waitpid(pid, &status, 0);
 	return WEXITSTATUS(status);
 }
 
