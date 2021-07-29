@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/26 18:55:20 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/28 19:27:08 by abaur            ###   ########.fr       */
+/*   Updated: 2021/07/29 17:35:39 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ static char**	GetPipeTerm(char*const* current){
 	return (char**)current;
 }
 
-static pid_t	create_process(char*const* argbegin, char*const* argend){
+static pid_t	create_process(char*const* argbegin, char*const* argend, pid_t pipefd[3]){
 	char*	argv[1 + argend - argbegin];
 	for(char*const*src=argbegin,**dst=argv; src!=argend; src++,dst++)
 		*dst = *src;
@@ -69,7 +69,16 @@ static pid_t	create_process(char*const* argbegin, char*const* argend){
 
 	int pid = fork();
 	if (!pid){
+		for (int i=0; i<2; ++i)
+		if (pipefd[i])
+			dup2(pipefd[i], i);
+		for (int i=0; i<3; ++i)
+		if (pipefd[i])
+			close(pipefd[i]);
+
 		execve(argv[0], argv, g_environ);
+
+
 		throw(EXIT_FAILURE, "cannot execute ", argv[0]);
 	}
 
@@ -78,11 +87,25 @@ static pid_t	create_process(char*const* argbegin, char*const* argend){
 
 static int	exec_pipechain(char*const* chainbegin, char*const* chainend){
 	pid_t	lastpid;
+	pid_t	pipefds[4] = {0, 0, 0, 0};
 
 	char*const*	procbegin = chainbegin;
 	char*const*	procend   = GetPipeTerm(chainbegin);
 	while (1) {
-		lastpid = create_process(procbegin, procend);
+		if (procend != chainend){
+			pipe(pipefds+2);
+			pipefds[1] = pipefds[3];
+			pipefds[3] = 0;
+		}
+
+		lastpid = create_process(procbegin, procend, pipefds);
+
+		for (int i=0; i<2; ++i)
+		if(pipefds[i])
+			close(pipefds[i]);
+		pipefds[0] = pipefds[2];
+		pipefds[1] = 0;
+		pipefds[2] = 0;
 
 		if (procend == chainend)
 			break;
