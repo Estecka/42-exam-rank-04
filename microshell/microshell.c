@@ -6,7 +6,7 @@
 /*   By: abaur <abaur@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/26 18:55:20 by abaur             #+#    #+#             */
-/*   Updated: 2021/07/31 21:08:17 by abaur            ###   ########.fr       */
+/*   Updated: 2021/08/07 14:43:28 by abaur            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@ static short	strcmp(const char* s1, const char* s2){
 	}
 	return 1;
 }
+
+
 static void	errlog(const char* arg1, const char* arg2){
 	write(STDERR_FILENO, "error: ", 7);
 	if (arg1) write(STDERR_FILENO, arg1, strlen(arg1));
@@ -44,6 +46,14 @@ static noreturn void	throw(int status, const char* arg1, const char* arg2){
 	errlog(arg1, arg2);
 	exit(status);
 }
+
+static noreturn void	throwfd(int pipefds[3]){
+	if (pipefds[0])	close(pipefds[0]);
+	if (pipefds[1])	close(pipefds[1]);
+	if (pipefds[2])	close(pipefds[2]);
+	throw(EXIT_FAILURE, "fatal", NULL);
+}
+
 
 /*
 ** Points to the terminating argument of the current command.
@@ -64,7 +74,9 @@ static char**	GetPipeTerm(char*const* current){
 	return (char**)current;
 }
 
-
+/*
+** This returns -1 if a fork wasn't created.
+*/
 static pid_t	create_process(char*const* argbegin, char*const* argend, pid_t pipefd[3]){
 	char*	argv[1 + argend - argbegin];
 	for(char*const*src=argbegin,**dst=argv; src!=argend; src++,dst++)
@@ -73,16 +85,17 @@ static pid_t	create_process(char*const* argbegin, char*const* argend, pid_t pipe
 
 	int pid = fork();
 	if (!pid){
-		for (int i=0; i<2; ++i)
-		if (pipefd[i])
-			dup2(pipefd[i], i);
-		for (int i=0; i<3; ++i)
-		if (pipefd[i])
-			close(pipefd[i]);
+		int duperr = 0;
+		if (pipefd[0])	duperr |= dup2(pipefd[0], STDIN_FILENO );
+		if (pipefd[1])	duperr |= dup2(pipefd[1], STDOUT_FILENO);
+		if (duperr == -1)
+			throwfd(pipefd);
+
+		if (pipefd[0])	close(pipefd[0]);
+		if (pipefd[1])	close(pipefd[1]);
+		if (pipefd[2])	close(pipefd[2]);
 
 		execve(argv[0], argv, g_environ);
-
-
 		throw(EXIT_FAILURE, "cannot execute ", argv[0]);
 	}
 
@@ -97,19 +110,22 @@ static int	exec_pipechain(char*const* chainbegin, char*const* chainend){
 	char*const*	procend   = GetPipeTerm(chainbegin);
 	while (1) {
 		if (procend != chainend){
-			pipe(pipefds+2);
+			if (pipe(pipefds+2))
+				throwfd(pipefds);
 			pipefds[1] = pipefds[3];
 			pipefds[3] = 0;
 		}
 
 		lastpid = create_process(procbegin, procend, pipefds);
 
-		for (int i=0; i<2; ++i)
-		if(pipefds[i])
-			close(pipefds[i]);
+		if(pipefds[0])	close(pipefds[0]);
+		if(pipefds[1])	close(pipefds[1]);
 		pipefds[0] = pipefds[2];
 		pipefds[1] = 0;
 		pipefds[2] = 0;
+
+		if (lastpid == -1)
+			throwfd(pipefds);
 
 		if (procend == chainend)
 			break;
@@ -153,6 +169,11 @@ extern int	main(int argc, char** argv, char** environ){
 		argbegin = argend;
 		argend   = GetCmdTerm(argbegin);
 	}
+
+	#ifdef TEST_SH
+	while (1)
+		continue;
+	#endif
 
 	return EXIT_SUCCESS;
 }
